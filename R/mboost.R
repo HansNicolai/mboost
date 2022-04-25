@@ -131,6 +131,8 @@ mboost_fit <- function(blg, response, weights = rep(1, NROW(response)),
     if (is.null(bnames) && !cwlin)
         names(blg) <- names(bl) <- bnames <- sapply(blg, function(x) x$get_call())
 
+    
+    nu_vec <- c()
 
     ### set up a function for boosting
     boost <- function(niter) {
@@ -139,10 +141,28 @@ mboost_fit <- function(blg, response, weights = rep(1, NROW(response)),
             ### fit baselearner(s)
             basess <- basefit(u, m)
 
-            ### update step
-            ### <FIXME> handle missing values!
-            fit <<- fit + nu * basess$fitted()
-            ### <FIXME>
+            # ### update step
+            # ### <FIXME> handle missing values!
+            # fit <<- fit + nu * basess$fitted()
+            # ### <FIXME>
+            
+            
+            ####################################################################
+            ### adjusted step lengths
+            
+            opt_sl_risk <- function(v){
+                ret <- riskfct(y = y, f = fit + v * basess$fitted())
+                return(ret)}
+            
+            v_opt <- optimize(opt_sl_risk, interval = c(-1, 10))$min
+            
+            print(paste("v_opt:", v_opt))
+            
+            nu_vec[m] <<- v_opt
+            
+            v_opt_shrink <- nu * v_opt
+            
+            fit <<- fit + v_opt_shrink * basess$fitted()
 
             ### negative gradient vector, the new `residuals'
             u <<- ngradient(y, fit, weights)
@@ -219,6 +239,13 @@ mboost_fit <- function(blg, response, weights = rep(1, NROW(response)),
         if (mstop == 0)
             return(NULL)
         return(xselect[1:mstop])
+    }
+    
+    ### nu_vector
+    RET$nu_vec <- function() {
+        if (mstop == 0)
+            return(NULL)
+        return(nu_vec[1:mstop])
     }
 
     ### current fitted values
@@ -466,6 +493,8 @@ mboost_fit <- function(blg, response, weights = rep(1, NROW(response)),
         names(ret) <- bnames
         ret
     }
+    
+    RET$ens <- function() ens
 
     class(RET) <- "mboost"
     return(RET)
