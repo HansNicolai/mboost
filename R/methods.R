@@ -229,16 +229,16 @@ logLik.mboost <- function(object, ...)
 ### restrict or enhance models to less/more
 ### boosting iterations.
 ### ATTENTION: x gets CHANGED!
-"[.mboost" <- function(x, i, return = TRUE, ...) {
+"[.mboost" <- function(x, i, asl = FALSE, fitted_val = NULL, return = TRUE, ...) {
     if (!(length(i) == 1 && i >= 0))
         stop("Please provide a single non-negative number")
-    x$subset(i)
+    x$subset(i, asl, fitted_val)
     if (return) return(x)
     invisible(NULL)
 }
 
-"mstop<-" <- function(x, value) {
-    return(x[value, return = TRUE])
+"mstop<-" <- function(x, value, asl = FALSE, fitted_val = NULL) {
+    return(x[value, asl, fitted_val, return = TRUE])
 }
 
 mstop.mboost <- function(object, ...) object$mstop()
