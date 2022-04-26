@@ -400,21 +400,36 @@ mboost_fit <- function(blg, response, weights = rep(1, NROW(response)),
     ### i >  mstop needs additional computations
     ### updates take place in THIS ENVIRONMENT,
     ### some models are CHANGED!
-    RET$subset <- function(i) {
+    RET$subset <- function(i,  asl = FALSE, fitted_val = NULL, u_val = NULL) {
         if (i <= mstop || i <= length(xselect)) {
             ## no need to recompute everything if mstop isn't changed
             if (i != mstop) {
-                mstop <<- i
-                fit <<- RET$predict()
-                u <<- ngradient(y, fit, weights)
+                
+                
+                if(!asl){
+                    mstop <<- i
+                    fit <<- RET$predict()
+                    u <<- ngradient(y, fit, weights)
+                }else{
+                    mstop <<- i
+                    fit <<- fitted_val
+                    u <<- u_val   
+                }
             }
         } else {
             ## if prior reduction of mstop,
             ## first increase mstop to old value first
             if (mstop != length(xselect)) {
-                mstop <<- length(xselect)
-                fit <<- RET$predict()
-                u <<- ngradient(y, fit, weights)
+                
+                if(!asl){
+                    mstop <<- length(xselect)
+                    fit <<- RET$predict()
+                    u <<- ngradient(y, fit, weights)
+                }else{
+                    mstop <<- length(xselect)
+                    fit <<- fitted_val
+                    u <<- u_val  
+                }
             }
             ## now fit the rest
             tmp <- boost(i - mstop)
