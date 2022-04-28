@@ -154,7 +154,7 @@ mboost_fit <- function(blg, response, weights = rep(1, NROW(response)),
                 ret <- riskfct(y = y, f = fit + v * basess$fitted())
                 return(ret)}
             
-            v_opt <- optimize(opt_sl_risk, interval = c(-1, 50))$min
+            v_opt <- optimize(opt_sl_risk, interval = c(-1, 10))$min
             
             print(paste("v_opt:", v_opt))
             
